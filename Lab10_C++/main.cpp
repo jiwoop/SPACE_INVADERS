@@ -64,15 +64,25 @@ struct sprite{
   status_t life;            // dead/alive
 };          
 typedef struct sprite sprite_t;
+#define TOTAL	6
 #define MAX 3
 
-sprite_t bill = {60, 25, 0, 0, SmallEnemy20pointB, alive};
+sprite_t bill[TOTAL] =
+{{0, 25, 0, 0, SmallEnemy10pointA, alive},
+{20, 25, 0, 0, SmallEnemy10pointB, alive},
+{40, 25, 0, 0, SmallEnemy20pointA, alive},
+{60, 25, 0, 0, SmallEnemy20pointB, alive},
+{80, 25, 0, 0, SmallEnemy30pointA, alive},
+{100, 25, 0, 0, SmallEnemy30pointB, alive},
+};
 sprite_t player[MAX] =
 {{52, 159, 0, 0, PlayerShip0, alive},
 {52, 159, 0, 0, PlayerShip0, dying},
 {52, 159, 0, 0, PlayerShip0, dead}};
 sprite_t bullet = {0, 0, 0, -4, shoot3, dead};	// bullet 1 is also a sprite
 
+uint32_t r = 0;		// randomized number
+uint32_t bodyCount = 0;
 uint32_t time = 0;
 uint32_t score = 0;
 uint32_t position;
@@ -84,6 +94,8 @@ volatile uint32_t lastSwitch = 0;
 volatile uint32_t nowSwitch = 0;
 volatile uint32_t startFire = 0;
 volatile uint32_t pause;
+volatile uint32_t start = 0;
+volatile uint32_t french = 0;
 
 void Shoot(void) {
 	// only y value changes.
@@ -112,13 +124,13 @@ void Move(void) {
 int debug = 0;
 void background(void){
 	// player kill status
-	if(bill.y == 159){
+	if(bill[r].y == 159){
 			player[0].life = dead;
 		}
 	// enemy kill status
 	// overlap with bullet
-	if(bill.y >= bullet.y-10 && bill.y <= bullet.y && bullet.x >= bill.x-9 && bullet.x <= bill.x+15) {
-		bill.life = dying;
+	if(bill[r].y >= bullet.y-10 && bill[r].y <= bullet.y && bullet.x >= bill[r].x-9 && bullet.x <= bill[r].x+15) {
+		bill[r].life = dying;
 		bullet.life = dying;
 	}
 	// missile
@@ -137,17 +149,21 @@ void background(void){
 	Move();
 	needToRedraw = 1; 	// semaphore
 	
-	// enemy 1 (bill) coming down
-  if(bill.life == alive){
-    bill.y++;
-		bill.x += 1 * direction;
-		if(bill.x == 0 || bill.x == 111)
+	// Use slidepot for language switch. (-: English, +: French)
+	
+	
+	// enemies coming down
+  if(bill[r].life == alive && start == 1){
+    bill[r].y++;
+		bill[r].x += 1 * direction;
+		if(bill[r].x == 0 || bill[r].x == 111)
 			direction *= -1;
   }
 	
-	if (bill.life == dead)
+	if (bill[r].life == dead)
 			debug++;
 }
+
 
 void Draw(void) {
 	for(int i = 0; i < MAX; i++) {
@@ -165,15 +181,17 @@ void Draw(void) {
 			bullet.y = 0;
 		}
 		
-		// enemy 1- bill
-		if(bill.life == alive) {
-			ST7735_DrawBitmap(bill.x, bill.y, bill.image, 16, 10);
+		// enemy - bill
+		if(bill[r].life == alive) {
+			ST7735_DrawBitmap(bill[r].x, bill[r].y, bill[r].image, 16, 10);
 		}
-		else if(bill.life == dying){	// when dead, draw once
-			ST7735_DrawBitmap(bill.x, bill.y, blackBill, 16, 10);
-			bill.life = dead;
-			bill.x = 0;
-			bill.y = 0;
+		else if(bill[r].life == dying){	// when dead, draw once
+			ST7735_DrawBitmap(bill[r].x, bill[r].y, blackBill, 16, 10);
+			bill[r].life = dead;
+			bodyCount++;
+			bill[r].x = 0;
+			bill[r].y = 0;
+			r++;
 		}
 	}
 }
@@ -187,8 +205,13 @@ void switchInit(void) {
 	volatile uint32_t delay;
 	SYSCTL_RCGCGPIO_R |= 0x10;	// Activate clock for Port E
 	delay = SYSCTL_RCGCGPIO_R;	// NOPs
-	GPIO_PORTE_DIR_R &= ~0x06;	// Direction: Input (0)
-	GPIO_PORTE_DEN_R |= 0x06;		// enable digital port
+	GPIO_PORTE_DIR_R &= ~0x0F;	// Direction: Input (0)
+	GPIO_PORTE_DEN_R |= 0x0F;		// enable digital port
+}
+
+//------------Random6------------
+ uint32_t Random6(void){
+  return ((Random32()>>24)%6)+1;  // returns 1, 2, 3, 4, 5, or 6
 }
 
 int main(void){
@@ -201,18 +224,56 @@ int main(void){
 	switchInit();
 	Timer0_Init(&background, 2666667);	// 30Hz
   Timer1_Init(&clock,80000000); // 1 Hz
+	Random_Init(NVIC_ST_CURRENT_R);	// initialize random number generator
 	ST7735_InitR(INITR_REDTAB);
   EnableInterrupts();
+	
+	// Generate an array of random number
+	
+	// Starting screen
+	ST7735_FillScreen(0x0000);	// set screen to black
+	
+	while(start == 0) {
+		ST7735_DrawBitmap(13, 67, logo, 100,68);
+		
+		if(french == 0) {
+			ST7735_SetCursor(2, 7);
+			ST7735_OutString((char*)"PRESS UP TO START");
+			ST7735_SetTextColor(ST7735_WHITE);
+			
+			ST7735_SetCursor(4, 9);
+			ST7735_OutString((char*)"PRESS DOWN TO");
+			ST7735_SetTextColor(ST7735_WHITE);
+			ST7735_SetCursor(3, 10);
+			ST7735_OutString((char*)"CHOOSE Fran\x87" "ais");
+			ST7735_SetTextColor(ST7735_WHITE);
+		}
+		else if(french == 1) {
+			ST7735_SetCursor(2, 7);
+			ST7735_OutString((char*)"PRESS UP TO START");
+			ST7735_SetTextColor(ST7735_WHITE);
+			
+			ST7735_SetCursor(4, 9);
+			ST7735_OutString((char*)"PRESS DOWN TO");
+			ST7735_SetTextColor(ST7735_WHITE);
+			ST7735_SetCursor(3, 10);
+			ST7735_OutString((char*)"CHOOSE English");
+			ST7735_SetTextColor(ST7735_WHITE);
+		}
+	}
+	ST7735_FillScreen(0x0000);	// set screen to black
 	
 	// Initial positions of everything
   //ST7735_DrawBitmap(52, 159, PlayerShip0, 18,8); // player ship middle bottom
   //ST7735_DrawBitmap(53, 151, Bunker0, 18,5);
-  ST7735_DrawBitmap(0, 25, SmallEnemy10pointA, 16,10);
-  ST7735_DrawBitmap(20,25, SmallEnemy10pointB, 16,10);
+  //ST7735_DrawBitmap(0, 25, SmallEnemy10pointA, 16,10);
+  ST7735_DrawBitmap(20, 25, SmallEnemy10pointB, 16,10);
   ST7735_DrawBitmap(40, 25, SmallEnemy20pointA, 16,10);
+	ST7735_DrawBitmap(60, 25, SmallEnemy20pointB, 16,10);
   ST7735_DrawBitmap(80, 25, SmallEnemy30pointA, 16,10);
   ST7735_DrawBitmap(100, 25, SmallEnemy30pointB, 16,10);
-  while(player[0].life == alive){
+	
+  while(player[0].life == alive && bodyCount != 6){
 		ST7735_SetCursor(0, 0);
 		ST7735_OutString((char*)"Task: Shoot them!!");
 
@@ -231,21 +292,53 @@ int main(void){
 			}
 		}
 	}
-
-	if(bill.life == dead)
-		score += 20;
 	
-  ST7735_FillScreen(0x0000);            // set screen to black
-  ST7735_SetCursor(1, 1);
-  ST7735_OutString((char*)"GAME OVER");
-  ST7735_SetCursor(1, 2);
-  ST7735_SetTextColor(ST7735_WHITE);
-  ST7735_OutString((char*)"Nice try,");
-  ST7735_SetCursor(1, 3);
-  ST7735_OutString((char*)"Score:");
-  ST7735_SetCursor(2, 4);
-	ST7735_OutUDec(score);
-  ST7735_SetTextColor(ST7735_WHITE);
+	// scoring
+	if(bill[0].life == dead)
+		score += 10;
+	if(bill[1].life == dead)
+		score += 10;
+	if(bill[2].life == dead)
+		score += 20;
+	if(bill[3].life == dead)
+		score += 20;
+	if(bill[4].life == dead)
+		score += 30;
+	if(bill[5].life == dead)
+		score += 30;
+	
+	// if dead
+	if(score != 120) {
+		ST7735_FillScreen(0x0000);            // set screen to black
+		ST7735_SetCursor(1, 1);
+		ST7735_OutString((char*)"GAME OVER");
+		ST7735_SetCursor(1, 2);
+		ST7735_SetTextColor(ST7735_WHITE);
+		ST7735_OutString((char*)"RESET to try again");
+		
+		ST7735_SetCursor(1, 4);
+		ST7735_OutString((char*)"Score:");
+		ST7735_SetCursor(1, 5);
+		ST7735_OutUDec(score);
+		ST7735_SetTextColor(ST7735_WHITE);
+	}
+	else if(score == 120) {
+		ST7735_FillScreen(0x0000);            // set screen to black
+		ST7735_SetCursor(1, 1);
+		ST7735_OutString((char*)"You won!");
+		ST7735_SetCursor(1, 2);
+		ST7735_SetTextColor(ST7735_WHITE);
+		ST7735_OutString((char*)"You saved earth");
+		ST7735_SetCursor(1, 3);
+		ST7735_OutString((char*)"from Invaders :))");
+		
+		ST7735_SetCursor(1, 5);
+		ST7735_OutString((char*)"Score:");
+		ST7735_SetCursor(1, 6);
+		ST7735_OutUDec(score);
+		ST7735_SetTextColor(ST7735_WHITE);
+	}
+  
 	
   //while(1){
    // while(needToRedraw==0){};
