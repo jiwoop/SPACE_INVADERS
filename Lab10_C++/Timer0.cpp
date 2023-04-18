@@ -24,10 +24,14 @@
 #include <stdint.h>
 #include "Timer0.h"
 #include "../inc/tm4c123gh6pm.h"
+
+
 extern "C" void TIMER0A_Handler(void);
 extern "C" volatile uint32_t lastSwitch;
 extern "C" volatile uint32_t nowSwitch;
+extern "C" volatile uint32_t start;
 extern "C" volatile uint32_t pause;
+extern "C" volatile uint32_t french;
 
 void (*PeriodicTask0)(void);   // user function
 
@@ -57,14 +61,24 @@ void Timer0_Init(void(*task)(void), uint32_t period){
 // Every 33ms
 void TIMER0A_Handler(void){
   TIMER0_ICR_R = TIMER_ICR_TATOCINT;// acknowledge TIMER0A timeout
-	// PE1 means Pause, PE2 means shoot
-	// Initialize switches (Port E)
+	// PE0 means Language switch, PE1 means Pause, PE2 means shoot, PE3 means start
+	// PE0
+	if (((GPIO_PORTE_DATA_R & 0x01) == 0x01) && french == 0)
+		french = 1;
+	else if(((GPIO_PORTE_DATA_R & 0x01) == 0x01) && french == 1)
+		french = 0;
+	
 	// PE2
-	if ((GPIO_PORTE_DATA_R & 0x04) == 0x04) {
+	if ((GPIO_PORTE_DATA_R & 0x04) == 0x04)
 		nowSwitch = 1;
-	}
+		
 	else
 		nowSwitch = 0;
+	
+	// PE3
+	if ((GPIO_PORTE_DATA_R & 0x08) == 0x08)
+		start = 1;
+	
 	
   (*PeriodicTask0)();                // execute user task
 }
