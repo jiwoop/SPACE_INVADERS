@@ -233,49 +233,66 @@ int main(void){
 	// Starting screen
 	ST7735_FillScreen(0x0000);	// set screen to black
 	
-	while(start == 0) {
+	while(start == 0){
+		ST7735_FillScreen(0x0000); 
 		ST7735_DrawBitmap(13, 67, logo, 100,68);
-		
-		if(french == 0) {
-			ST7735_SetCursor(2, 7);
-			ST7735_OutString((char*)"PRESS UP TO START");
+		while(start == 0 && french == 0) {
+			ST7735_SetCursor(1, 7);
+			ST7735_OutString((char*)"PRESS DOWN TO START");
 			ST7735_SetTextColor(ST7735_WHITE);
 			
-			ST7735_SetCursor(4, 9);
-			ST7735_OutString((char*)"PRESS DOWN TO");
+			ST7735_SetCursor(5, 9);
+			ST7735_OutString((char*)"PRESS UP TO");
 			ST7735_SetTextColor(ST7735_WHITE);
 			ST7735_SetCursor(3, 10);
 			ST7735_OutString((char*)"CHOOSE Fran\x87" "ais");
 			ST7735_SetTextColor(ST7735_WHITE);
+			
 		}
-		else if(french == 1) {
-			ST7735_SetCursor(2, 7);
-			ST7735_OutString((char*)"PRESS UP TO START");
+		ST7735_FillScreen(0x0000); 
+		ST7735_DrawBitmap(13, 67, logo, 100,68);
+		
+		while(start == 0 && french == 1){
+			
+			ST7735_SetCursor(3, 7);
+			ST7735_OutString((char*)"APPUYER EN HAUT");
+			ST7735_SetTextColor(ST7735_WHITE);
+			ST7735_SetCursor(3, 8);
+			ST7735_OutString((char*)"POUR COMMENCER");
 			ST7735_SetTextColor(ST7735_WHITE);
 			
-			ST7735_SetCursor(4, 9);
-			ST7735_OutString((char*)"PRESS DOWN TO");
+			ST7735_SetCursor(5, 10);
+			ST7735_OutString((char*)"APPUYEZ SUR");
 			ST7735_SetTextColor(ST7735_WHITE);
-			ST7735_SetCursor(3, 10);
-			ST7735_OutString((char*)"CHOOSE English");
+			ST7735_SetCursor(7, 11);
+			ST7735_OutString((char*)"BAS POUR");
+			ST7735_SetTextColor(ST7735_WHITE);
+			ST7735_SetCursor(3, 12);
+			ST7735_OutString((char*)"CHOISIR English");
 			ST7735_SetTextColor(ST7735_WHITE);
 		}
 	}
+
 	ST7735_FillScreen(0x0000);	// set screen to black
 	
 	// Initial positions of everything
   //ST7735_DrawBitmap(52, 159, PlayerShip0, 18,8); // player ship middle bottom
   //ST7735_DrawBitmap(53, 151, Bunker0, 18,5);
   //ST7735_DrawBitmap(0, 25, SmallEnemy10pointA, 16,10);
+	
   ST7735_DrawBitmap(20, 25, SmallEnemy10pointB, 16,10);
   ST7735_DrawBitmap(40, 25, SmallEnemy20pointA, 16,10);
 	ST7735_DrawBitmap(60, 25, SmallEnemy20pointB, 16,10);
   ST7735_DrawBitmap(80, 25, SmallEnemy30pointA, 16,10);
   ST7735_DrawBitmap(100, 25, SmallEnemy30pointB, 16,10);
+	ST7735_FillRect( 0, 10, 120, 15, ST7735_BLACK);
 	
   while(player[0].life == alive && bodyCount != 6){
 		ST7735_SetCursor(0, 0);
-		ST7735_OutString((char*)"Task: Shoot them!!");
+		if(french == 0)
+			ST7735_OutString((char*)"Task: Shoot them!!");
+		if(french == 1)
+			ST7735_OutString((char*)"Mission: Tue-les!!");
 
     while(needToRedraw==0){};
     needToRedraw = 0;
@@ -308,7 +325,7 @@ int main(void){
 		score += 30;
 	
 	// if dead
-	if(score != 120) {
+	if(score != 120 && french == 0) {
 		ST7735_FillScreen(0x0000);            // set screen to black
 		ST7735_SetCursor(1, 1);
 		ST7735_OutString((char*)"GAME OVER");
@@ -322,7 +339,24 @@ int main(void){
 		ST7735_OutUDec(score);
 		ST7735_SetTextColor(ST7735_WHITE);
 	}
-	else if(score == 120) {
+	else if (score != 120 && french == 1){
+		ST7735_FillScreen(0x0000);            // set screen to black
+		ST7735_SetCursor(1, 1);
+		ST7735_OutString((char*)"GAME OVER");
+		ST7735_SetCursor(1, 2);
+		ST7735_SetTextColor(ST7735_WHITE);
+		ST7735_OutString((char*)"REINITIALISER pour");
+		ST7735_SetCursor(1, 3);
+		ST7735_SetTextColor(ST7735_WHITE);
+		ST7735_OutString((char*)"reessayer");
+		
+		ST7735_SetCursor(1, 5);
+		ST7735_OutString((char*)"Score:");
+		ST7735_SetCursor(1, 6);
+		ST7735_OutUDec(score);
+		ST7735_SetTextColor(ST7735_WHITE);
+	}
+	if(score == 120 && french == 0) {
 		ST7735_FillScreen(0x0000);            // set screen to black
 		ST7735_SetCursor(1, 1);
 		ST7735_OutString((char*)"You won!");
@@ -335,6 +369,27 @@ int main(void){
 		ST7735_SetCursor(1, 5);
 		ST7735_OutString((char*)"Score:");
 		ST7735_SetCursor(1, 6);
+		ST7735_OutUDec(score);
+		ST7735_SetTextColor(ST7735_WHITE);
+	}
+	else if (score == 120 && french == 1){
+		ST7735_FillScreen(0x0000);            // set screen to black
+		ST7735_SetCursor(1, 1);
+		ST7735_OutString((char*)"La victoire!");
+		ST7735_SetCursor(1, 2);
+		ST7735_SetTextColor(ST7735_WHITE);
+		ST7735_OutString((char*)"Vous avez sauve");
+		ST7735_SetCursor(1, 3);
+		ST7735_SetTextColor(ST7735_WHITE);
+		ST7735_OutString((char*)"la terre");
+		ST7735_SetCursor(1, 4);
+		ST7735_OutString((char*)"des envahisseurs"); 
+		ST7735_SetCursor(1, 5);
+		ST7735_OutString((char*)":))");
+		
+		ST7735_SetCursor(1, 7);
+		ST7735_OutString((char*)"Score:");
+		ST7735_SetCursor(1, 8);
 		ST7735_OutUDec(score);
 		ST7735_SetTextColor(ST7735_WHITE);
 	}
