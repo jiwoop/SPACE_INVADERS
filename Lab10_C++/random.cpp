@@ -46,5 +46,3 @@ uint8_t Random (void){
   M = 1664525*M+1013904223;
   return M>>24;
 }
-
-

@@ -71,6 +71,7 @@ void TIMER0A_Handler(void){
 	// PE2
 	if ((GPIO_PORTE_DATA_R & 0x04) == 0x04)
 		nowSwitch = 1;
+	
 		
 	else
 		nowSwitch = 0;

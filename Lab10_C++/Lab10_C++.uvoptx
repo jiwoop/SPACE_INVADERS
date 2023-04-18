@@ -217,32 +217,22 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>bill.y,0x0A</ItemText>
+          <ItemText>bullet.life</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>bill.x,0x0A</ItemText>
+          <ItemText>bullet.y,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>bill.life</ItemText>
+          <ItemText>Length,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>bullet.life</ItemText>
-        </Ww>
-        <Ww>
-          <count>4</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>bullet.y,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>5</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>debug,0x0A</ItemText>
+          <ItemText>SoundPt</ItemText>
         </Ww>
       </WatchWindow1>
       <MemoryWindow1>
