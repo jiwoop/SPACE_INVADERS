@@ -7,5 +7,6 @@ Good old arcade game _Space Invaders_ but on ST7735 LCD and Texas Instrument TM4
 - Drivers include:
   - ADC
   - DAC
+  - Potentiometer (Slidepot)
   - ST7736 (LCD Screen)
   - Wireless UART Communication
